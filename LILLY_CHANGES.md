@@ -2,7 +2,7 @@
 
 This branch tracks local fixes made on top of the upstream `facebookresearch/sam3` repository.
 
-## cc0d3fc — Handle models without `offload_state_to_cpu`
+## 2026-05-24 — cc0d3fc — Handle models without `offload_state_to_cpu`
 
 File changed:
 
