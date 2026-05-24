@@ -127,8 +127,12 @@ class Sam3BasePredictor:
         init_kwargs = dict(
             resource_path=resource_path,
             offload_video_to_cpu=offload_video_to_cpu,
-            offload_state_to_cpu=offload_state_to_cpu,
         )
+        # Some SAM3 video models (notably Sam3MultiplexTrackingWithInteractivity)
+        # do not accept offload_state_to_cpu, while other predictors do.
+        import inspect
+        if "offload_state_to_cpu" in inspect.signature(self.model.init_state).parameters:
+            init_kwargs["offload_state_to_cpu"] = offload_state_to_cpu
         if hasattr(self, "async_loading_frames"):
             init_kwargs["async_loading_frames"] = self.async_loading_frames
         if hasattr(self, "video_loader_type"):
