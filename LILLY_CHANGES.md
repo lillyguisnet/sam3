@@ -2,6 +2,20 @@
 
 This branch tracks local fixes made on top of the upstream `facebookresearch/sam3` repository.
 
+
+## 2026-05-24 — 5606f27 — Fix `max_frame_num_to_track` frame bounds
+
+File changed:
+
+- `sam3/model/sam3_multiplex_detector.py`
+
+Summary:
+
+- Fixed a mismatch when `max_frame_num_to_track` was used during video propagation.
+- The detector bounds were not correctly accounting for zero indexing and half-open frame ranges.
+- This could exclude the final intended frame and cause tensor / output size mismatches.
+- The fix aligns detector frame bounds with the tracker inclusive `max_frame_num_to_track` semantics for both forward and reverse propagation.
+
 ## 2026-05-24 — cc0d3fc — Handle models without `offload_state_to_cpu`
 
 File changed:
