@@ -1241,10 +1241,18 @@ class Sam3MultiplexTracking(Sam3MultiplexBase):
     def _build_sam2_output(
         self, inference_state, frame_idx, refined_obj_id_to_mask=None
     ):
-        if not frame_idx in inference_state["cached_frame_outputs"]:
-            return {}
+        # LILLY CHANGE: allow direct point prompting on frames that do not yet
+        # have cached tracker output. Upstream only built SAM2 output when the
+        # current frame already existed in `cached_frame_outputs`, which worked
+        # for point refinement but returned early for first-time point prompts.
+        # Keep the original upstream guard below for easy comparison.
+        #if not frame_idx in inference_state["cached_frame_outputs"]:
+        #    return {}
 
-        cached_outputs = inference_state["cached_frame_outputs"][frame_idx]
+        #cached_outputs = inference_state["cached_frame_outputs"][frame_idx]
+        # Start from an empty cache when direct prompting a new frame; any
+        # `refined_obj_id_to_mask` entries below then become the complete output.
+        cached_outputs = inference_state.get("cached_frame_outputs", {}).get(frame_idx, {})
         obj_id_to_mask = cached_outputs.copy()
 
         # Update with refined masks if provided
@@ -3037,6 +3045,12 @@ class Sam3MultiplexTrackingWithInteractivity(Sam3MultiplexTracking):
                 obj_id_to_mask,
                 suppressed_obj_ids=suppressed_obj_ids,
             )
+            # LILLY CHANGE: point prompts route through this SAM2 interactivity
+            # path rather than the SAM3 text/box path. Mark the prompted frame as
+            # having outputs so propagate_in_video can infer a default start
+            # frame when callers do not pass start_frame_idx explicitly. This
+            # mirrors _run_single_frame_inference for text/box prompts.
+            inference_state["previous_stages_out"][frame_idx] = "_THIS_FRAME_HAS_OUTPUTS_"
             return frame_idx, self._postprocess_output(
                 inference_state, out, suppressed_obj_ids=suppressed_obj_ids
             )

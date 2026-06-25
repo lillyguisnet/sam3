@@ -2,6 +2,26 @@
 
 This branch tracks local fixes made on top of the upstream `facebookresearch/sam3` repository.
 
+## 2026-06-25 — uncommitted — Allow direct point prompting and video propagation from point prompts
+
+File changed:
+
+- `sam3/model/sam3_multiplex_tracking.py`
+
+Summary:
+
+- Updated `Sam3MultiplexTracking._build_sam2_output()` so it no longer returns early when the current frame is missing from `inference_state["cached_frame_outputs"]`.
+- This enables direct point prompting on a frame before any cached tracker output exists, instead of only supporting point refinement of an already-tracked frame.
+- The method now safely falls back to an empty cached-output dictionary and then applies `refined_obj_id_to_mask` as the SAM2 output for that frame.
+- Updated the SAM2 interactivity point-prompt path to mark the prompted frame in `inference_state["previous_stages_out"]` after caching its output.
+- This lets `propagate_in_video()` infer the prompted frame as the default start frame when callers do not pass `start_frame_idx`, matching the behavior already used by `_run_single_frame_inference()` for text/box prompts.
+- The original upstream guard and direct cache lookup are intentionally left in comments beside the new logic so future reviewers can compare the local behavior against upstream.
+
+Context:
+
+- Direct point prompts may provide a refined mask for a frame that has not yet been propagated or cached. Treating the missing cache as empty lets that prompt seed the output rather than being discarded.
+- For videos, `_get_processing_order()` relies on `previous_stages_out` to find a default propagation start frame. Point prompts previously produced masks through the SAM2 interactivity path but did not mark that list, so video propagation could still behave as if no prompt/output frame existed unless `start_frame_idx` was provided explicitly.
+
 
 ## 2026-05-24 — 5606f27 — Fix `max_frame_num_to_track` frame bounds
 
