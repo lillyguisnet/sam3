@@ -2,7 +2,7 @@
 
 This branch tracks local fixes made on top of the upstream `facebookresearch/sam3` repository.
 
-## 2026-06-25 — uncommitted — Allow direct point prompting and video propagation from point prompts
+## 2026-06-25 — ac8d220 — Allow direct point prompting and video propagation from point prompts
 
 File changed:
 
